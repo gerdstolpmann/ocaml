@@ -35,6 +35,28 @@ all: lib
 	done 2>&1 | tee _log
 	@$(MAKE) report
 
+.PHONY: cross-compile
+cross-compile: lib
+	rm -f $(BASEDIR)/modules
+	@for dir in tests/*; do \
+	  $(MAKE) $(NO_PRINT) cross-compile-here DIR=$$dir; \
+	done 2>&1; \
+	cd cross && $(MAKE) cross-compile
+
+.PHONY: cross-compile-here
+cross-compile-here:
+	@if [ ! -f $(DIR)/Makefile ]; then \
+	  for dir in $(DIR)/*; do \
+	    if [ -d $$dir ]; then \
+	      $(MAKE) cross-compile-here DIR=$$dir; \
+	    fi; \
+	  done; \
+	else \
+	  echo "DIR: $(DIR)"; \
+	  cd $(DIR) && \
+	  $(MAKE) BASEDIR=$(BASEDIR) DIR=$(DIR) cross-compile; \
+	fi
+
 .PHONY: list
 list: lib
 	@if [ -z "$(FILE)" ]; \

@@ -25,6 +25,9 @@ default:
           && echo " => passed" || echo " => failed"; \
 	done
 
+.PHONY: cross-compile
+cross-compile:
+
 promote: defaultpromote
 
 clean: defaultclean

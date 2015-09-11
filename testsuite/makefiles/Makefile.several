@@ -98,9 +98,44 @@ run-file:
 	  $(DIFF) $$F.reference $$F.result >/dev/null; \
 	fi
 
+.PHONY: cross-compile
+cross-compile:
+	@if $(BYTECODE_ONLY); then :; else $(MAKE) cross-compile-1; fi
+
+.PHONY: cross-compile-1
+cross-compile-1:
+	@for file in $(C_FILES); do \
+	  $(CC) -c -I$(PREFIX)/lib/ocaml/caml $$file.c; \
+	done;
+	@for file in $(F_FILES); do \
+	  $(FORTRAN_COMPILER) -c -I$(PREFIX)/lib/ocaml/caml $$file.f; \
+	done;
+	@k=1; \
+	dirid=`md5 -q -s $(DIR) | cut -c 1-8`; \
+	for file in *.ml; do \
+	  base=`basename $$file .ml`; \
+	  case "$$file" in cross_*) continue;; esac; \
+	  if [ -f "$$base.precheck" ]; then \
+	    CANKILL=$(CANKILL) sh "$$base.precheck" || continue; \
+	  fi; \
+	  out="cross_$${dirid}_$$k"; \
+	  printf "let exit _ = raise Exit\n" >"$$out".ml ; \
+	  printf "let testname = \""$(DIR)"/$$base\";;\n" >>"$$out".ml; \
+	  printf "module Testmodule(Dummy:sig end) = struct\n" >>"$$out".ml; \
+	  cat $$file >>"$$out".ml; \
+	  printf "\nend\n" >>"$$out".ml; \
+	  echo "OPT $(DIR)/$$out" ; \
+	  $(OCAMLOPT) -a -o "$$out".cmxa \
+                      -w a $(ADD_COMPFLAGS) $(ADD_OPTFLAGS) \
+		      $(O_FILES) \
+		      -I $(OTOPDIR)/testsuite/lib "$$out".ml; \
+	  k=$$(( k+1 )); \
+	  echo "$(DIR)/$$out" >> $(BASEDIR)/modules; \
+	done
+
 .PHONY: promote
 promote: defaultpromote
 
 .PHONY: clean
 clean: defaultclean
-	@rm -f *.result program program.exe
+	@rm -f *.result program program.exe cross_*.ml \

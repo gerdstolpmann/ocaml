@@ -67,6 +67,29 @@ run:
 	   fi \
 	&& echo " => passed" || echo " => failed"
 
+.PHONY: cross-compile
+cross-compile: $(ML_FILES) $(CMI_FILES) $(CMX_FILES) $(MAIN_MODULE).ml
+	@for file in $(C_FILES); do \
+	  $(NATIVECC) $(NATIVECCCOMPOPTS) -c -I$(CTOPDIR)/byterun $$file.c; \
+	done;
+	@dirid=`md5 -q -s $(DIR) | cut -c 1-8`; \
+	out="cross_$${dirid}_1"; \
+	printf "let exit _ = raise Exit\n" >"$$out".ml; \
+	printf "let testname = \""$(DIR)/$(MAIN_MODULE)"\";;\n" >>"$$out".ml; \
+	printf "module Testmodule(Dummy:sig end) = struct\n" >>"$$out".ml; \
+	cat $(MAIN_MODULE).ml >>"$$out".ml; \
+	printf "\nend\n" >>"$$out".ml; \
+	echo "OPT $(DIR)/$$out"; \
+	if [ -n "$(O_FILES)" ]; then \
+	  rm -f "$${out}_c.a"; \
+	  ar -q "$${out}_c.a" $(O_FILES); \
+	  c_archive="$(BASEDIR)/$(DIR)/$${out}_c.a"; \
+	fi; \
+	$(OCAMLOPT) $(ADD_COMPFLAGS) $(ADD_OPTCOMPFLAGS) \
+	              -a -o "$$out".cmxa $$c_archive \
+		      $(CMX_FILES) \
+		      "$$out".ml; \
+	echo "$(DIR)/$$out" >>$(BASEDIR)/modules
 
 .PHONY: promote
 promote: defaultpromote
@@ -74,5 +97,5 @@ promote: defaultpromote
 .PHONY: clean
 clean: defaultclean
 	@rm -f *.result program.byte program.byte.exe \
-	       program.native program.native.exe \
+	       program.native program.native.exe cross_*.ml \
 	       $(GENERATED_SOURCES) $(O_FILES) $(TEST_TEMP_FILES)

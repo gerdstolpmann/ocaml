@@ -34,6 +34,9 @@ compile:
 	  fi; \
 	done
 
+.PHONY: cross-compile
+cross-compile:
+
 .PHONY: promote
 promote: defaultpromote
 
