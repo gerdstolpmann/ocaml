@@ -76,8 +76,10 @@ let usage () =
 
 let main () =
   let args = Sys.argv in
-  if Array.length args <> 2 then usage () else
-  digits (int_of_string Sys.argv.(1))
+  let n = Array.length args in
+  if n < 2 then digits 1000 else
+    if n = 2 then digits (int_of_string Sys.argv.(1))
+    else usage()
 ;;
 
 main ()

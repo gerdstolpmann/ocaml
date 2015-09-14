@@ -113,6 +113,7 @@ cross-compile-1:
 	@k=1; \
 	dirid=`md5 -q -s $(DIR) | cut -c 1-8`; \
 	for file in *.ml; do \
+          if [ ! -f "$$file" ]; then continue; fi; \
 	  base=`basename $$file .ml`; \
 	  case "$$file" in cross_*) continue;; esac; \
 	  if [ -f "$$base.precheck" ]; then \
@@ -121,24 +122,27 @@ cross-compile-1:
 	  if [ -f "$$base".nocross ]; then continue; fi; \
 	  out="cross_$${dirid}_$$k"; \
 	  printf "let exit _ = raise Exit\n" >"$$out".ml ; \
+          printf "let at_exit = Testing.test_exit\n" >>"$$out".ml; \
 	  printf "let testname = \""$(DIR)"/$$base\";;\n" >>"$$out".ml; \
 	  printf "module Testmodule(Dummy:sig end) = struct\n" >>"$$out".ml; \
 	  cat $$file >>"$$out".ml; \
 	  printf "\nend\n" >>"$$out".ml; \
 	  echo "OPT $(DIR)/$$out" ; \
+          rm -f "$$base".cmxa; \
 	  $(OCAMLOPT) -a -o "$$out".cmxa \
                       -w a $(ADD_COMPFLAGS) $(ADD_OPTFLAGS) \
 		      $(O_FILES) \
-		      -I $(OTOPDIR)/testsuite/lib "$$out".ml; \
-	  ln -s "$$out".cmxa "$$base".cmxa; \
-	  k=$$(( k+1 )); \
-	  echo "$(DIR)/$$out" >> $(BASEDIR)/modules; \
+		      -I $(OTOPDIR)/testsuite/lib "$$out".ml \
+	  && ln -s "$$out".cmxa "$$base".cmxa \
+	  && k=$$(( k+1 )) \
+	  && echo "$(DIR)/$$out" >> $(BASEDIR)/modules; \
 	done
 
 .PHONY: cross-run
 cross-run:
 	@printf " ... testing against testserver\n"
 	@for file in *.cmxa; do \
+          if [ ! -f "$$file" ]; then continue; fi; \
 	  base=`basename $$file .cmxa`; \
 	  case "$$base" in cross_*) continue;; esac; \
 	  if [ -f $$base/precheck ]; then \

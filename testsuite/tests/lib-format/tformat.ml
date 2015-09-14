@@ -19,6 +19,9 @@ A test file for the Format module.
 open Testing;;
 open Format;;
 
+let () =
+  at_exit Testing.finish ;;
+
 let say s = Printf.printf s;;
 
 try

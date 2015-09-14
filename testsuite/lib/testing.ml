@@ -14,6 +14,11 @@
 
 open Scanf;;
 
+let exit_action = ref (fun () -> ())
+
+let test_exit f = exit_action := f
+let exec_exit() = !exit_action()
+
 let all_tests_ok = ref true;;
 
 let finish () =
@@ -23,7 +28,7 @@ let finish () =
   | _ ->
       print_endline "\n\n********* Test suite failed. ***********\n";;
 
-at_exit finish;;
+(* at_exit finish;; *)   (* incompatible with test server *)
 
 let test_num = ref (-1);;
 
@@ -91,3 +96,8 @@ let any_failure_test = test_raises_some_failure;;
 
 let scan_failure_test f x =
   test_raises_exc_p (function Scan_failure _ -> true | _ -> false) f x;;
+
+let init() =
+  exit_action := (fun () -> ());
+  all_tests_ok := true;
+  test_num := (-1)

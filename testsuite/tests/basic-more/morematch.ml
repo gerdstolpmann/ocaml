@@ -10,6 +10,9 @@
 (*                                                                     *)
 (***********************************************************************)
 
+let () =
+  at_exit Testing.finish
+
 (**************************************************************)
 (*  This suite tests the pattern-matching compiler            *)
 (*  it should just compile and run.                           *)

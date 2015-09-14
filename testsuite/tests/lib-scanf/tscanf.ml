@@ -20,6 +20,9 @@ open Testing;;
 
 open Scanf;;
 
+let () =
+  at_exit Testing.finish ;;
+
 (* The ``continuation'' that returns the scanned value. *)
 let id x = x;;
 

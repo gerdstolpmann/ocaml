@@ -14,4 +14,7 @@ let bug () =
      with Invalid_argument _ -> ()
     )
 
+let () =
+  at_exit Testing.finish
+
 let () = bug ()

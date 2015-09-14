@@ -30,6 +30,9 @@ let test n =
   in
     print_int n; print_string ": "; print_string result; print_newline()
 
+let () =
+  at_exit Testing.finish
+
 let _ =
   test 0; test 1; test 2; test 3; test 4; test (-1);
   Gc.full_major();

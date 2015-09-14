@@ -10,6 +10,9 @@
 (*                                                                     *)
 (***********************************************************************)
 
+let () =
+  at_exit Testing.finish ;;
+
 let is_empty s =
   try Stream.empty s; true with Stream.Failure -> false
 

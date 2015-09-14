@@ -14,6 +14,9 @@ open Testing;;
 
 open Printf;;
 
+let () =
+  at_exit Testing.finish
+
 (* Padding floating point numbers.
    Testing * width specifications. *)
 let test0 () =

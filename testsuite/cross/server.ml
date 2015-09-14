@@ -11,11 +11,13 @@ let registry = ref []
 
 module Register(C:CROSSMODULE) = struct
   let run() =
+    Testing.init();
     ( try
         let module M = C.Testmodule(struct end) in
-        ()
+        raise Exit
       with
-        | Exit -> ()
+        | Exit ->
+            Testing.exec_exit()
         | exn ->
             printf "Exception: %s\n" (Printexc.to_string exn)
     );
@@ -54,6 +56,9 @@ let input_line fd =
   Buffer.contents line
 
 let run() =
+  Pervasives.at_exit (fun () -> raise Exit);
+  let tmpdir = Sys.getenv "TMPDIR" in
+  Unix.chdir tmpdir;
   let sock = Unix.socket Unix.PF_INET6 Unix.SOCK_STREAM 0 in
   Unix.setsockopt sock Unix.SO_REUSEADDR true;
   Unix.bind sock (Unix.ADDR_INET(Unix.inet6_addr_any,port));

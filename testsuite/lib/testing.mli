@@ -30,3 +30,8 @@ val test_raises_exc_p : (exn -> bool) -> ('a -> 'b) -> 'a -> bool;;
 
 val scan_failure_test : ('a -> 'b) -> 'a -> bool;;
 (** [scan_failure_test f x] tests that [f x] raises [Scanf.Scan_failure]. *)
+
+val init : unit -> unit
+val finish : unit -> unit
+val test_exit : (unit -> unit) -> unit
+val exec_exit : unit -> unit

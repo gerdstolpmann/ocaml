@@ -16,8 +16,8 @@ flags := -I $(OTOPDIR)/otherlibs/$(UNIXLIBVAR)unix \
 
 .PHONY: cross-compile
 cross-compile: server.ml main.ml
-	$(OCAMLOPT) $(incl) $(flags) -o testserver unix.cmxa nums.cmxa bigarray.cmxa str.cmxa threads.cmxa testing.cmx $(cmxa) server.ml main.ml
-	$(OCAMLOPT) $(incl) $(flags) -output-obj -o testserver.o unix.cmxa nums.cmxa bigarray.cmxa str.cmxa threads.cmxa testing.cmx $(cmxa) server.ml main.ml
+	$(OCAMLOPT) $(incl) $(flags) -o testserver -linkall unix.cmxa nums.cmxa bigarray.cmxa str.cmxa threads.cmxa testing.cmx $(cmxa) server.ml main.ml
+	$(OCAMLOPT) $(incl) $(flags) -output-obj -o testserver.o -linkall unix.cmxa nums.cmxa bigarray.cmxa str.cmxa threads.cmxa testing.cmx $(cmxa) server.ml main.ml
 	$(OCAMLOPT) -c link.c
 	rm -f libtestserver.a
 	mkdir -p tmp_asmrun
@@ -36,7 +36,6 @@ cross-compile: server.ml main.ml
         done
 	ar qc libtestserver.a testserver.o link.o
 	ar qc libtestserver.a ../tests/basic-manyargs/manyargsprim.o
-	ar qc libtestserver.a ../tests/lib-marshal/intextaux.o
 	ar qc libtestserver.a ../tests/gc-roots/globrootsprim.o
 	ranlib libtestserver.a
 	rm -rf tmp_asmrun libasmrun.a libnums.a libcamlstr.a libbigarray.a libunix.a libthreadsnat.a

@@ -15,6 +15,9 @@
 open Testing;;
 open Buffer;;
 
+let () =
+  at_exit Testing.finish
+
 let identity s = s;;
 
 let b = Buffer.create 100;;

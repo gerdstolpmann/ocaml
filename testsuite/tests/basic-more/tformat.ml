@@ -29,5 +29,8 @@ let test0 () =
   s = msg
 ;;
 
+let () =
+  at_exit Testing.finish ;;
+
 test (test0 ())
 ;;

@@ -3,6 +3,9 @@
 open Printf
 
 let () =
+  at_exit Testing.finish ;;
+
+let () =
   printf "1 [%.5s]\n" "foo";
   printf "2 [%.*s]\n" 5 "foo";
   printf "3 [%.-5s]\n" "foo";

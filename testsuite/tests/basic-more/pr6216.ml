@@ -1,5 +1,8 @@
 (* PR6216: wrong inlining of GADT match *)
 
+let () =
+  at_exit Testing.finish
+
 type _ t =
  | Float : float t
  | String : string t

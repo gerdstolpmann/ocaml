@@ -12,6 +12,9 @@
 
 open Random
 
+let () =
+  at_exit Testing.finish
+
 let _ =
   for i = 0 to 20 do
     print_char ' '; print_int (int 1000);

@@ -19,6 +19,9 @@ A test file for the Printf module.
 open Testing;;
 open Printf;;
 
+let () =
+  at_exit Testing.finish ;;
+
 try
 
   printf "d/i positive\n%!";

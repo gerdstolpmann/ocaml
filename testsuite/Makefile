@@ -17,6 +17,9 @@ NO_PRINT=`$(MAKE) empty --no-print-directory >/dev/null 2>&1 \
 FIND=find
 include ../config/Makefile
 
+PORT=6543
+# port of the cross-compiled test server
+
 .PHONY: default
 default:
 	@echo "Available targets:"
@@ -76,7 +79,7 @@ cross-run-here:
 	else \
 	  echo "Running tests from '$$DIR' ..."; \
 	  cd $(DIR) && \
-	  $(MAKE) TERM=dumb BASEDIR=$(BASEDIR) cross-run || echo '=> unexpected error'; \
+	  $(MAKE) TERM=dumb BASEDIR=$(BASEDIR) PORT=$(PORT) cross-run || echo '=> unexpected error'; \
 	fi
 
 .PHONY: list
