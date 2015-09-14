@@ -1,0 +1,11 @@
+BASEDIR=..
+include $(BASEDIR)/makefiles/Makefile.common
+
+.PHONY: cross-compile
+cross-compile: main.cmx server.cmx
+	$(OCAMLOPT) -o server unix.cmxa server.cmx main.cmx
+
+
+.PHONY: clean
+clean: defaultclean
+	rm -f main.ml

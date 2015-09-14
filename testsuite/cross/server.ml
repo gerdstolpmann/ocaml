@@ -55,9 +55,10 @@ let input_line fd =
 
 let run() =
   let sock = Unix.socket Unix.PF_INET6 Unix.SOCK_STREAM 0 in
+  Unix.setsockopt sock Unix.SO_REUSEADDR true;
   Unix.bind sock (Unix.ADDR_INET(Unix.inet6_addr_any,port));
   Unix.listen sock 5;
-  eprintf "Listening on port %d\n" port;
+  eprintf "Listening on port %d\n%!" port;
   let cont = ref true in
   while !cont do
     let stream,_ = Unix.accept sock in
@@ -68,7 +69,7 @@ let run() =
       let f =
         try List.assoc line !registry
         with Not_found ->
-          eprintf "Test not found: %s\n" line;
+          eprintf "Test not found: %s\n%!" line;
           (fun () -> ()) in
       let saved_stdout = Unix.dup Unix.stdout in
       Unix.dup2 stream Unix.stdout;
@@ -78,5 +79,5 @@ let run() =
     );
     Unix.close stream
   done;
-  Unix.close sock
-
+  Unix.close sock;
+  eprintf "Stopped server\n%!"

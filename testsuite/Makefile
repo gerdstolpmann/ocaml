@@ -57,6 +57,28 @@ cross-compile-here:
 	  $(MAKE) BASEDIR=$(BASEDIR) DIR=$(DIR) cross-compile; \
 	fi
 
+.PHONY: cross-run
+cross-run:
+	@if [ -z "$(IP)" ]; then echo "Variable IP not set (set this to the IP address of the server)" >&2; exit 1; fi
+	@if [ -z "$(PORT)" ]; then echo "Variable PORT not set (set this to the port of the server)" >&2; exit 1; fi
+	@for dir in tests/*; do \
+	  $(MAKE) $(NO_PRINT) cross-run-here DIR=$$dir; \
+	done 2>&1 | tee _log
+
+.PHONY: cross-run-here
+cross-run-here:
+	@if [ ! -f $(DIR)/Makefile ]; then \
+	  for dir in $(DIR)/*; do \
+	    if [ -d $$dir ]; then \
+	      $(MAKE) cross-run-here DIR=$$dir; \
+	    fi; \
+	  done; \
+	else \
+	  echo "Running tests from '$$DIR' ..."; \
+	  cd $(DIR) && \
+	  $(MAKE) TERM=dumb BASEDIR=$(BASEDIR) cross-run || echo '=> unexpected error'; \
+	fi
+
 .PHONY: list
 list: lib
 	@if [ -z "$(FILE)" ]; \

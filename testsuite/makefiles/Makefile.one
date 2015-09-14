@@ -68,7 +68,11 @@ run:
 	&& echo " => passed" || echo " => failed"
 
 .PHONY: cross-compile
-cross-compile: $(ML_FILES) $(CMI_FILES) $(CMX_FILES) $(MAIN_MODULE).ml
+cross-compile:
+	@if [ ! -f "$(MAIN_MODULE)".nocross ]; then $(MAKE) cross-compile-1; fi
+
+.PHONY: cross-compile-1
+cross-compile-1: $(ML_FILES) $(CMI_FILES) $(CMX_FILES) $(MAIN_MODULE).ml
 	@for file in $(C_FILES); do \
 	  $(NATIVECC) $(NATIVECCCOMPOPTS) -c -I$(CTOPDIR)/byterun $$file.c; \
 	done;
@@ -90,6 +94,18 @@ cross-compile: $(ML_FILES) $(CMI_FILES) $(CMX_FILES) $(MAIN_MODULE).ml
 		      $(CMX_FILES) \
 		      "$$out".ml; \
 	echo "$(DIR)/$$out" >>$(BASEDIR)/modules
+
+.PHONY: cross-run
+cross-run:
+	@if [ ! -f "$(MAIN_MODULE)".nocross ]; then $(MAKE) cross-run-1; fi
+
+.PHONY: cross-run-1
+cross-run-1:
+	@printf " ... testing against testserver\n"
+	@echo "$(DIR)/$(MAIN_MODULE)" | nc "$(IP)" "$(PORT)" >$(MAIN_MODULE).result
+	@{ $(DIFF) $(MAIN_MODULE).reference $(MAIN_MODULE).result >/dev/null; } \
+	&& echo " => passed" || echo " => failed"
+
 
 .PHONY: promote
 promote: defaultpromote

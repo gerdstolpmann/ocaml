@@ -118,6 +118,7 @@ cross-compile-1:
 	  if [ -f "$$base.precheck" ]; then \
 	    CANKILL=$(CANKILL) sh "$$base.precheck" || continue; \
 	  fi; \
+	  if [ -f "$$base".nocross ]; then continue; fi; \
 	  out="cross_$${dirid}_$$k"; \
 	  printf "let exit _ = raise Exit\n" >"$$out".ml ; \
 	  printf "let testname = \""$(DIR)"/$$base\";;\n" >>"$$out".ml; \
@@ -129,9 +130,31 @@ cross-compile-1:
                       -w a $(ADD_COMPFLAGS) $(ADD_OPTFLAGS) \
 		      $(O_FILES) \
 		      -I $(OTOPDIR)/testsuite/lib "$$out".ml; \
+	  ln -s "$$out".cmxa "$$base".cmxa; \
 	  k=$$(( k+1 )); \
 	  echo "$(DIR)/$$out" >> $(BASEDIR)/modules; \
 	done
+
+.PHONY: cross-run
+cross-run:
+	@printf " ... testing against testserver\n"
+	@for file in *.cmxa; do \
+	  base=`basename $$file .cmxa`; \
+	  case "$$base" in cross_*) continue;; esac; \
+	  if [ -f $$base/precheck ]; then \
+	    CANKILL=$(CANKILL) sh $$base/precheck || continue; \
+	  fi; \
+	  if [ -f $$base.runner ]; then continue; fi; \
+	  if [ -f "$$base".nocross ]; then continue; fi; \
+	  printf " ... testing '$$base.ml':"; \
+	  echo "$(DIR)/$$base" | nc "$(IP)" "$(PORT)" >$$base.result && \
+          if [ -f $$base.checker ]; then \
+	      DIFF="$(DIFF)" SORT="$(SORT)" sh $$base.checker; \
+	  else \
+	      $(DIFF) $$base.reference $$base.result >/dev/null; \
+	  fi \
+	  && echo " => passed" || echo " => failed"; \
+        done
 
 .PHONY: promote
 promote: defaultpromote
