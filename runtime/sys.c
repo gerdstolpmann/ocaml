@@ -19,7 +19,9 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#ifndef CAML_USE_WASICAML
 #include <signal.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -29,7 +31,9 @@
 #ifdef _WIN32
 #include <direct.h> /* for _wchdir and _wgetcwd */
 #else
+#ifndef CAML_USE_WASICAML
 #include <sys/wait.h>
+#endif
 #endif
 #include "caml/config.h"
 #ifdef HAS_UNISTD
@@ -461,7 +465,7 @@ void caml_sys_init(char_os * exe_name, char_os **argv)
 #endif
 #endif
 
-#ifdef HAS_SYSTEM
+#if defined(HAS_SYSTEM) && !defined(CAML_USE_WASICAML)
 CAMLprim value caml_sys_system_command(value command)
 {
   CAMLparam1 (command);
@@ -582,7 +586,7 @@ CAMLprim value caml_sys_random_seed (value unit)
 #else
     data[n++] = time(NULL);
 #endif
-#ifdef HAS_UNISTD
+#if defined(HAS_UNISTD) && !defined(CAML_USE_WASICAML)
     data[n++] = getpid();
     data[n++] = getppid();
 #endif

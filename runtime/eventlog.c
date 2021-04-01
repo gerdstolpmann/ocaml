@@ -253,6 +253,8 @@ void caml_eventlog_init()
   Caml_state->eventlog_startup_timestamp = time_counter();
 #ifdef _WIN32
   Caml_state->eventlog_startup_pid = _getpid();
+#elif defined(CAML_USE_WASICAML)
+  Caml_state->eventlog_startup_pid = 0;
 #else
   Caml_state->eventlog_startup_pid = getpid();
 #endif

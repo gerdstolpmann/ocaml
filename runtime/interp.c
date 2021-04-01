@@ -209,9 +209,60 @@ sp is a local copy of the global variable Caml_state->extern_sp. */
 static intnat caml_bcodcount;
 #endif
 
+typedef struct interp_ctx {
+    code_t prog;
+    asize_t prog_size;
+    intnat initial_sp_offset;
+    struct caml__roots_block * initial_local_roots;
+    bool caught_exception;
+    value result;
+#ifdef CAML_USE_WASICAML
+    void * initial_external_raise;
+#else
+    struct longjmp_buffer * initial_external_raise;
+#endif
+} interp_ctx;
+
+static void interpret_inner(interp_ctx *ctx);
+static void interpret_inner_untyped(void *ctx);
+
+value caml_interprete(code_t prog, asize_t prog_size) {
+    interp_ctx ctx;
+    ctx.prog = prog;
+    ctx.prog_size = prog_size;
+    ctx.initial_sp_offset = (char *) Caml_state->stack_high - (char *) Caml_state->extern_sp;
+    ctx.initial_local_roots = Caml_state->local_roots;
+    ctx.caught_exception = false;
+    ctx.result = Val_int(0);
+    ctx.initial_external_raise = Caml_state->external_raise;
+
+#ifdef CAML_USE_WASICAML
+    Caml_state->external_raise = (void *) 1;   // just not NULL
+#else
+    struct longjmp_buffer raise_buf;
+    Caml_state->external_raise = &raise_buf;
+#endif
+
+    bool caught = true;
+    while (caught) {
+#ifdef CAML_USE_WASICAML
+        caught = wasicaml_try(interpret_inner_untyped, &ctx);
+#else
+        caught = sigsetjmp(raise_buf.buf, 0) != 0;
+        if (!caught) interpret_inner(&ctx);
+#endif
+        ctx.caught_exception = caught;
+    }
+    return ctx.result;
+}
+
+static void interpret_inner_untyped(void *ctx) {
+    interpret_inner((interp_ctx *) ctx);
+}
+
 /* The interpreter itself */
 
-value caml_interprete(code_t prog, asize_t prog_size)
+static void interpret_inner(interp_ctx *ctx)
 {
 #ifdef PC_REG
   register code_t pc PC_REG;
@@ -231,12 +282,6 @@ value caml_interprete(code_t prog, asize_t prog_size)
 #endif
   value env;
   intnat extra_args;
-  struct longjmp_buffer * initial_external_raise;
-  intnat initial_sp_offset;
-  /* volatile ensures that initial_local_roots
-     will keep correct value across longjmp */
-  struct caml__roots_block * volatile initial_local_roots;
-  struct longjmp_buffer raise_buf;
 #ifndef THREADED_CODE
   opcode_t curr_instr;
 #endif
@@ -247,26 +292,28 @@ value caml_interprete(code_t prog, asize_t prog_size)
   };
 #endif
 
-  if (prog == NULL) {           /* Interpreter is initializing */
+  if (ctx->prog == NULL) {           /* Interpreter is initializing */
 #ifdef THREADED_CODE
     caml_instr_table = (char **) jumptable;
     caml_instr_base = Jumptbl_base;
 #endif
-    return Val_unit;
+    ctx->result = Val_unit;
+    return;
   }
 
 #if defined(THREADED_CODE) && defined(ARCH_SIXTYFOUR) && !defined(ARCH_CODE32)
   jumptbl_base = Jumptbl_base;
 #endif
-  initial_local_roots = Caml_state->local_roots;
-  initial_sp_offset =
-    (char *) Caml_state->stack_high - (char *) Caml_state->extern_sp;
-  initial_external_raise = Caml_state->external_raise;
   caml_callback_depth++;
 
-  if (sigsetjmp(raise_buf.buf, 0)) {
-    Caml_state->local_roots = initial_local_roots;
-    sp = Caml_state->extern_sp;
+  sp = Caml_state->extern_sp;
+  pc = ctx->prog;
+  extra_args = 0;
+  env = Atom(0);
+  accu = Val_int(0);
+
+  if (ctx->caught_exception) {
+    Caml_state->local_roots = ctx->initial_local_roots;
     accu = Caml_state->exn_bucket;
 
     Check_trap_barrier;
@@ -277,14 +324,8 @@ value caml_interprete(code_t prog, asize_t prog_size)
       caml_stash_backtrace(accu, sp, 0);
     }
     goto raise_notrace;
+    // will also set sp, pc, extra_args and env
   }
-  Caml_state->external_raise = &raise_buf;
-
-  sp = Caml_state->extern_sp;
-  pc = prog;
-  extra_args = 0;
-  env = Atom(0);
-  accu = Val_int(0);
 
 #ifdef THREADED_CODE
 #ifdef DEBUG
@@ -304,9 +345,9 @@ value caml_interprete(code_t prog, asize_t prog_size)
     if (caml_trace_level>0) caml_disasm_instr(pc);
     if (caml_trace_level>1) {
       printf("env=");
-      caml_trace_value_file(env,prog,prog_size,stdout);
+      caml_trace_value_file(env,ctx->prog,ctx->prog_size,stdout);
       putchar('\n');
-      caml_trace_accu_sp_file(accu,sp,prog,prog_size,stdout);
+      caml_trace_accu_sp_file(accu,sp,ctx->prog,ctx->prog_size,stdout);
       fflush(stdout);
     };
     CAMLassert(sp >= Caml_state->stack_low);
@@ -887,12 +928,13 @@ value caml_interprete(code_t prog, asize_t prog_size)
       }
     raise_notrace:
       if ((char *) Caml_state->trapsp
-          >= (char *) Caml_state->stack_high - initial_sp_offset) {
-        Caml_state->external_raise = initial_external_raise;
+          >= (char *) Caml_state->stack_high - ctx->initial_sp_offset) {
+        Caml_state->external_raise = ctx->initial_external_raise;
         Caml_state->extern_sp = (value *) ((char *) Caml_state->stack_high
-                                    - initial_sp_offset);
+                                    - ctx->initial_sp_offset);
         caml_callback_depth--;
-        return Make_exception_result(accu);
+        ctx->result = Make_exception_result(accu);
+        return;
       }
       sp = Caml_state->trapsp;
       pc = Trap_pc(sp);
@@ -1146,10 +1188,11 @@ value caml_interprete(code_t prog, asize_t prog_size)
 /* Debugging and machine control */
 
     Instruct(STOP):
-      Caml_state->external_raise = initial_external_raise;
+      Caml_state->external_raise = ctx->initial_external_raise;
       Caml_state->extern_sp = sp;
       caml_callback_depth--;
-      return accu;
+      ctx->result = accu;
+      return;
 
     Instruct(EVENT):
       if (--caml_event_count == 0) {

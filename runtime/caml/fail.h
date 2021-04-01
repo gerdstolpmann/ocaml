@@ -17,7 +17,11 @@
 #define CAML_FAIL_H
 
 #ifdef CAML_INTERNALS
+#ifdef CAML_USE_WASICAML
+#include "wasicaml.h"
+#else
 #include <setjmp.h>
+#endif
 #endif /* CAML_INTERNALS */
 
 #ifndef CAML_NAME_SPACE
@@ -40,6 +44,7 @@
 #define ASSERT_FAILURE_EXN 10   /* "Assert_failure" */
 #define UNDEFINED_RECURSIVE_MODULE_EXN 11 /* "Undefined_recursive_module" */
 
+#ifndef CAML_USE_WASICAML
 #ifdef POSIX_SIGNALS
 struct longjmp_buffer {
   sigjmp_buf buf;
@@ -57,6 +62,7 @@ struct longjmp_buffer {
 };
 #define sigsetjmp(buf,save) setjmp(buf)
 #define siglongjmp(buf,val) longjmp(buf,val)
+#endif
 #endif
 
 /* Global variables moved to Caml_state in 4.10 */

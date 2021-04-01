@@ -43,7 +43,11 @@ CAMLexport void caml_raise(value v)
 
   Caml_state->exn_bucket = v;
   if (Caml_state->external_raise == NULL) caml_fatal_uncaught_exception(v);
+#ifdef CAML_USE_WASICAML
+  wasicaml_throw();
+#else
   siglongjmp(Caml_state->external_raise->buf, 1);
+#endif
 }
 
 CAMLexport void caml_raise_constant(value tag)

@@ -412,6 +412,8 @@ char *caml_secure_getenv (char const *var)
     return getenv(var);
   else
     return NULL;
+#elif defined(CAML_USE_WASICAML)
+  return getenv(var);
 #else
   if (geteuid () == getuid () && getegid () == getgid ())
     return getenv(var);
