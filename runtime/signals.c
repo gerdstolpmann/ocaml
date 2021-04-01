@@ -17,7 +17,9 @@
 
 /* Signal handling, code common to the bytecode and native systems */
 
+#ifndef CAML_USE_WASICAML
 #include <signal.h>
+#endif
 #include <errno.h>
 #include "caml/alloc.h"
 #include "caml/callback.h"

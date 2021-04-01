@@ -45,7 +45,11 @@ DOMAIN_STATE(value*, stack_threshold)
 DOMAIN_STATE(value*, extern_sp)
 DOMAIN_STATE(value*, trapsp)
 DOMAIN_STATE(value*, trap_barrier)
+#ifdef CAML_USE_WASICAML
+DOMAIN_STATE(void*, external_raise)
+#else
 DOMAIN_STATE(struct longjmp_buffer*, external_raise)
+#endif
 DOMAIN_STATE(value, exn_bucket)
 /* See interp.c */
 
