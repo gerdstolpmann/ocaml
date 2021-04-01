@@ -17,7 +17,9 @@
 
 /* Signal handling, code specific to the bytecode interpreter */
 
+#ifndef CAML_USE_WASICAML
 #include <signal.h>
+#endif
 #include <errno.h>
 #include "caml/config.h"
 #include "caml/memory.h"
@@ -37,6 +39,7 @@ extern sighandler caml_win32_signal(int sig, sighandler action);
 #define signal(sig,act) caml_win32_signal(sig,act)
 #endif
 
+#ifndef CAML_USE_WASICAML
 static void handle_signal(int signal_number)
 {
   int saved_errno;
@@ -49,9 +52,13 @@ static void handle_signal(int signal_number)
   caml_record_signal(signal_number);
   errno = saved_errno;
 }
+#endif
 
 int caml_set_signal_action(int signo, int action)
 {
+#ifdef CAML_USE_WASICAML
+  return 0;
+#else
   void (*act)(int signo), (*oldact)(int signo);
 #ifdef POSIX_SIGNALS
   struct sigaction sigact, oldsigact;
@@ -79,6 +86,7 @@ int caml_set_signal_action(int signo, int action)
     return 1;
   else
     return 0;
+#endif
 }
 
 CAMLexport int caml_setup_stack_overflow_detection(void) { return 0; }
