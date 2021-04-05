@@ -465,7 +465,7 @@ void caml_sys_init(char_os * exe_name, char_os **argv)
 #endif
 #endif
 
-#if defined(HAS_SYSTEM) && !defined(CAML_USE_WASICAML)
+#if (defined(HAS_SYSTEM) && !defined(CAML_USE_WASICAML)) || defined(WASICAML_PROVIDE_SYSTEM)
 CAMLprim value caml_sys_system_command(value command)
 {
   CAMLparam1 (command);

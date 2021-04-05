@@ -300,11 +300,19 @@ extern double caml_log1p(double);
 #define open_os open
 #define stat_os stat
 #define unlink_os unlink
+#ifdef WASICAML_PROVIDE_RENAME
+#define rename_os wasicaml_rename
+#else
 #define rename_os rename
+#endif
 #define chdir_os chdir
 #define mkdir_os mkdir
 #define getcwd_os getcwd
+#ifdef CAML_USE_WASICAML
+#define system_os wasicaml_system
+#else
 #define system_os system
+#endif
 #define rmdir_os rmdir
 #define putenv_os putenv
 #define chmod_os chmod
