@@ -39,8 +39,10 @@ CAMLprim value unix_link(value follow, value path1, value path2)
   caml_enter_blocking_section();
   if (follow == Val_int(0) /* None */)
     ret = link(p1, p2);
-  else { /* Some bool */
-# ifdef AT_SYMLINK_FOLLOW
+  else {
+# if defined(AT_SYMLINK_FOLLOW) && !defined(CAML_USE_WASICAML)
+    // WASICAML: currently, wasi-sdk-12 doesn't implement AT_DFCWD correctly.
+    // It is fixed in git already, though.
     int flags =
       Is_block(follow) && Bool_val(Field(follow, 0)) /* Some true */
       ? AT_SYMLINK_FOLLOW
