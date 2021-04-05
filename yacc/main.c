@@ -15,7 +15,11 @@
 
 /* Based on public-domain code from Berkeley Yacc */
 
+#ifdef CAML_USE_WASICAML
+#include "wasicaml.h"
+#else
 #include <signal.h>
+#endif
 #include <string.h>
 #include "defs.h"
 #ifdef HAS_UNISTD
