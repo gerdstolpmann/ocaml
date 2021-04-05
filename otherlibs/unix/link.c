@@ -40,7 +40,9 @@ CAMLprim value unix_link(value follow, value path1, value path2)
   if (Is_none(follow))
     ret = link(p1, p2);
   else {
-# ifdef AT_SYMLINK_FOLLOW
+# if defined(AT_SYMLINK_FOLLOW) && !defined(CAML_USE_WASICAML)
+    // WASICAML: currently, wasi-sdk-12 doesn't implement AT_DFCWD correctly.
+    // It is fixed in git already, though.
     int flags =
       Is_some(follow) && Bool_val(Some_val(follow))
       ? AT_SYMLINK_FOLLOW
