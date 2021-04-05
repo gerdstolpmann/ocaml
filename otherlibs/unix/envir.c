@@ -49,6 +49,8 @@ static char **secure_environ(void)
     return environ;
   else
     return NULL;
+#elif defined(CAML_USE_WASICAML)
+  return environ;
 #else
   if (geteuid () == getuid () && getegid () == getgid ())
     return environ;

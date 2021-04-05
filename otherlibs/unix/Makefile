@@ -15,6 +15,8 @@
 
 # Makefile for the Unix interface library
 
+include ../../Makefile.config
+
 LIBNAME=unix
 
 EXTRACAMLFLAGS=-nolabels
@@ -42,6 +44,27 @@ COBJS=accept.o access.o addrofstr.o alarm.o bind.o channels.o chdir.o \
   socketpair.o sockopt.o spawn.o stat.o strofaddr.o symlink.o termios.o \
   time.o times.o truncate.o umask.o unixsupport.o unlink.o \
   utimes.o wait.o write.o
+
+ifeq ($(HOST),wasm32-unknown-wasi)
+COBJS=accept.o access.o addrofstr.o bind.o channels.o chdir.o \
+  close.o fsync.o closedir.o connect.o cst2constr.o \
+  cstringv.o envir.o errmsg.o exit.o \
+  fchmod.o fchown.o fcntl.o ftruncate.o \
+  getaddrinfo.o getcwd.o \
+  getgroups.o gethost.o \
+  getnameinfo.o getpeername.o getproto.o \
+  gettimeofday.o getserv.o getsockname.o gmtime.o \
+  initgroups.o isatty.o itimer.o link.o listen.o lockf.o lseek.o \
+  mkdir.o mmap.o mmap_ba.o \
+  nice.o open.o opendir.o putenv.o read.o realpath.o \
+  readdir.o readlink.o rename.o rewinddir.o rmdir.o select.o sendrecv.o \
+  setgroups.o shutdown.o \
+  sleep.o socket.o socketaddr.o \
+  socketpair.o sockopt.o stat.o strofaddr.o symlink.o termios.o \
+  time.o times.o truncate.o unixsupport.o unlink.o \
+  utimes.o write.o \
+  wasi_unavailable.o
+endif
 
 CAMLOBJS=unix.cmo unixLabels.cmo
 
