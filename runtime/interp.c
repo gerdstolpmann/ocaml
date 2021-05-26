@@ -246,7 +246,7 @@ value caml_interprete(code_t prog, asize_t prog_size) {
     bool caught = true;
     while (caught) {
 #ifdef CAML_USE_WASICAML
-        caught = wasicaml_try(interpret_inner_untyped, &ctx);
+        caught = wasicaml_wraptry(interpret_inner_untyped, &ctx);
 #else
         caught = sigsetjmp(raise_buf.buf, 0) != 0;
         if (!caught) interpret_inner(&ctx);
