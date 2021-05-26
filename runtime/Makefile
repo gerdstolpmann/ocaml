@@ -268,10 +268,16 @@ build_config.h: $(ROOTDIR)/Makefile.config sak$(EXE)
 
 # Libraries and programs
 
-ocamlrun$(EXE): prims.$(O) libcamlrun.$(A)
+ifneq "$(PRIMS_IR)" "true"
+PRIMS_OBJ = prims.$(O)
+else
+PRIMS_OBJ = prims.ir.$(O)
+endif
+
+ocamlrun$(EXE): $(PRIMS_OBJ) libcamlrun.$(A)
 	$(MKEXE) -o $@ $^ $(LIBS)
 
-ocamlruns$(EXE): prims.$(O) libcamlrun_non_shared.$(A)
+ocamlruns$(EXE): $(PRIMS_OBJ) libcamlrun_non_shared.$(A)
 	$(call MKEXE_USING_COMPILER,$@,$^ $(LIBS))
 
 libcamlrun.$(A): $(libcamlrun_OBJECTS)
@@ -280,13 +286,13 @@ libcamlrun.$(A): $(libcamlrun_OBJECTS)
 libcamlrun_non_shared.$(A): $(libcamlrun_non_shared_OBJECTS)
 	$(call MKLIB,$@, $^)
 
-ocamlrund$(EXE): prims.$(O) libcamlrund.$(A)
+ocamlrund$(EXE): $(PRIMS_OBJ) libcamlrund.$(A)
 	$(MKEXE) $(MKEXEDEBUGFLAG) -o $@ $^ $(LIBS)
 
 libcamlrund.$(A): $(libcamlrund_OBJECTS)
 	$(call MKLIB,$@, $^)
 
-ocamlruni$(EXE): prims.$(O) libcamlruni.$(A)
+ocamlruni$(EXE): $(PRIMS_OBJ) libcamlruni.$(A)
 	$(MKEXE) -o $@ $^ $(INSTRUMENTED_RUNTIME_LIBS) $(LIBS)
 
 libcamlruni.$(A): $(libcamlruni_OBJECTS)
@@ -336,6 +342,8 @@ libasmrun_shared.$(SO): $(libasmrunpic_OBJECTS)
 %.npic.$(O): OC_CPPFLAGS += $(OC_NATIVE_CPPFLAGS)
 %.npic.$(D): OC_CPPFLAGS += $(OC_NATIVE_CPPFLAGS)
 
+%.ir.$(O): OC_CFLAGS += -emit-llvm
+
 # Compilation of C files
 
 # The COMPILE_C_FILE macro below receives as argument the pattern
@@ -362,7 +370,7 @@ endif # ifneq "$(COMPUTE_DEPS)" "false"
 	  $$(OUTPUTOBJ)$$@ $$<
 endef
 
-object_types := % %.b %.bd %.bi %.bpic
+object_types := % %.b %.bd %.bi %.bpic %.ir
 ifneq "$(NATIVE_COMPILER)" "false"
 object_types += %.n %.nd %.ni %.np %.npic
 endif
