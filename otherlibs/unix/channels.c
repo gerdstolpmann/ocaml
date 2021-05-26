@@ -40,7 +40,10 @@ static int unix_check_stream_semantics(int fd)
 
   if (fstat(fd, &buf) == -1) return errno;
   switch (buf.st_mode & S_IFMT) {
-  case S_IFREG: case S_IFCHR: case S_IFIFO:
+  case S_IFREG: case S_IFCHR:
+#ifndef CAML_USE_WASICAML
+case S_IFIFO:
+#endif
     /* These have stream semantics */
     return 0;
 #ifdef HAS_SOCKETS

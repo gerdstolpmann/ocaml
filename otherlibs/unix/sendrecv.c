@@ -25,7 +25,11 @@
 #include "socketaddr.h"
 
 static int msg_flag_table[] = {
+#ifdef CAML_USE_WASICAML
+  0, 0, 0
+#else
   MSG_OOB, MSG_DONTROUTE, MSG_PEEK
+#endif
 };
 
 CAMLprim value unix_recv(value sock, value buff, value ofs, value len,
@@ -48,6 +52,11 @@ CAMLprim value unix_recv(value sock, value buff, value ofs, value len,
   return Val_int(ret);
 }
 
+#ifdef CAML_USE_WASICAML
+CAMLprim value unix_recvfrom(value sock, value buff, value ofs, value len,
+                             value flags)
+{ caml_invalid_argument("recvfrom not implemented"); }
+#else
 CAMLprim value unix_recvfrom(value sock, value buff, value ofs, value len,
                              value flags)
 {
@@ -77,6 +86,7 @@ CAMLprim value unix_recvfrom(value sock, value buff, value ofs, value len,
   End_roots();
   return res;
 }
+#endif
 
 CAMLprim value unix_send(value sock, value buff, value ofs, value len,
                          value flags)
@@ -96,6 +106,14 @@ CAMLprim value unix_send(value sock, value buff, value ofs, value len,
   return Val_int(ret);
 }
 
+#ifdef CAML_USE_WASICAML
+CAMLprim value unix_sendto_native(value sock, value buff, value ofs, value len,
+                                  value flags, value dest)
+{ caml_invalid_argument("sendto not implemented"); }
+
+CAMLprim value unix_sendto(value *argv, int argc)
+{ caml_invalid_argument("sendto not implemented"); }
+#else
 CAMLprim value unix_sendto_native(value sock, value buff, value ofs, value len,
                                   value flags, value dest)
 {
@@ -123,6 +141,7 @@ CAMLprim value unix_sendto(value *argv, int argc)
   return unix_sendto_native
            (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
+#endif
 
 #else
 

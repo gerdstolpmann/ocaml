@@ -19,7 +19,7 @@
 #include <caml/memory.h>
 #include "unixsupport.h"
 
-#ifdef HAS_SOCKETS
+#if defined(HAS_SOCKETS) && !defined(CAML_USE_WASICAML)
 
 #include <sys/types.h>
 
