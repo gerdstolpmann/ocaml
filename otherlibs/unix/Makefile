@@ -56,7 +56,7 @@ COBJS=accept.o access.o addrofstr.o bind.o channels.o chdir.o \
   gettimeofday.o getserv.o getsockname.o gmtime.o \
   initgroups.o isatty.o itimer.o link.o listen.o lockf.o lseek.o \
   mkdir.o mmap.o mmap_ba.o \
-  nice.o open.o opendir.o putenv.o read.o realpath.o \
+  nice.o open.o opendir.o putenv.o read.o \
   readdir.o readlink.o rename.o rewinddir.o rmdir.o select.o sendrecv.o \
   setgroups.o shutdown.o \
   sleep.o socket.o socketaddr.o \

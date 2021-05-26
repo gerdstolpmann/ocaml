@@ -55,7 +55,7 @@ void get_sockaddr(value mladr,
                   socklen_param_type * adr_len /*out*/)
 {
   switch(Tag_val(mladr)) {
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(CAML_USE_WASICAML)
   case 0:                       /* ADDR_UNIX */
     { value path;
       mlsize_t len;
@@ -114,7 +114,7 @@ value alloc_sockaddr(union sock_addr_union * adr /*in*/,
                      socklen_param_type adr_len, int close_on_error)
 {
   value res;
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(CAML_USE_WASICAML)
   if (adr_len < offsetof(struct sockaddr, sa_data)) {
     // Only possible for an unnamed AF_UNIX socket, in
     // which case sa_family might be uninitialized.
@@ -123,7 +123,7 @@ value alloc_sockaddr(union sock_addr_union * adr /*in*/,
 #endif
 
   switch(adr->s_gen.sa_family) {
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(CAML_USE_WASICAML)
   case AF_UNIX:
     { /* Based on recommendation in section BUGS of Linux unix(7). See
          http://man7.org/linux/man-pages/man7/unix.7.html. */
