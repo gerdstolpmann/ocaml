@@ -36,6 +36,37 @@
 
 CAMLexport int caml_callback_depth = 0;
 
+#ifdef CAML_USE_WASICAML
+static int code_pointer_shift = 12;  // See also wasicaml/wc_emit.ml
+
+typedef value wasm_function(value *, uint32_t, value, value*);
+
+CAMLexport value caml_callbackN_exn(value closure, int narg, value args[])
+{
+  int i;
+  value res;
+
+  CAMLassert(narg + 1 <= 256);
+
+  value* old_sp = Caml_state->extern_sp;
+  Caml_state->extern_sp -= narg + 1;
+  for (i = 0; i < narg; i++) Caml_state->extern_sp[i] = args[i]; /* arguments */
+  value *envptr = &Caml_state->extern_sp[narg + 0];
+  *envptr = closure;
+  value codeptr = Long_val(Field(closure, 0));
+  int f_index = codeptr >> (code_pointer_shift-1);
+  wasm_function *f = (wasm_function *) f_index;
+  res = f(envptr, narg-1, codeptr, Caml_state->extern_sp);
+  if (((void *) res) == NULL) {
+      // exception
+      res = Make_exception_result(Caml_state->exn_bucket);
+  }
+  Caml_state->extern_sp = old_sp;  // works because we don't allow realloc of stack
+  return res;
+}
+
+#else
+
 static opcode_t callback_code[] = { ACC, 0, APPLY, 0, POP, 1, STOP };
 
 static int callback_code_inited = 0;
@@ -71,6 +102,7 @@ CAMLexport value caml_callbackN_exn(value closure, int narg, value args[])
   if (Is_exception_result(res)) Caml_state->extern_sp += narg + 4; /* PR#3419 */
   return res;
 }
+#endif
 
 CAMLexport value caml_callback_exn(value closure, value arg1)
 {
