@@ -52,6 +52,10 @@ CAMLextern void caml_shutdown (void);
 
 CAMLextern int caml_callback_depth;
 
+#ifdef CAML_USE_WASICAML
+    CAMLextern int caml_callback_wasi;
+#endif
+
 #ifdef __cplusplus
 }
 #endif
