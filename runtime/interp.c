@@ -224,7 +224,7 @@ typedef struct interp_ctx {
 } interp_ctx;
 
 static void interpret_inner(interp_ctx *ctx);
-static void interpret_inner_untyped(void *ctx);
+static void *interpret_inner_untyped(void *ctx);
 
 value caml_interprete(code_t prog, asize_t prog_size) {
     interp_ctx ctx;
@@ -246,7 +246,9 @@ value caml_interprete(code_t prog, asize_t prog_size) {
     bool caught = true;
     while (caught) {
 #ifdef CAML_USE_WASICAML
-        caught = wasicaml_wraptry(interpret_inner_untyped, &ctx);
+        void *r;
+        r = wasicaml_wraptry(interpret_inner_untyped, &ctx);
+        caught = r == NULL;
 #else
         caught = sigsetjmp(raise_buf.buf, 0) != 0;
         if (!caught) interpret_inner(&ctx);
@@ -256,8 +258,9 @@ value caml_interprete(code_t prog, asize_t prog_size) {
     return ctx.result;
 }
 
-static void interpret_inner_untyped(void *ctx) {
+static void *interpret_inner_untyped(void *ctx) {
     interpret_inner((interp_ctx *) ctx);
+    return (void *) 1;   // do not return NULL on success
 }
 
 /* The interpreter itself */
