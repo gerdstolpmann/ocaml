@@ -40,6 +40,7 @@ CAMLexport int caml_callback_depth = 0;
 static int code_pointer_shift = 12;  // See also wasicaml/wc_emit.ml
 
 typedef value wasm_function(value *, uint32_t, value, value*);
+typedef void *wasm_function_wrap(void *, void *, void *, void *);
 
 CAMLexport int caml_callback_wasi = 0;
 #endif
@@ -90,10 +91,10 @@ CAMLexport value caml_callbackN_exn(value closure, int narg, value args[])
     for (i = 0; i < narg; i++) Caml_state->extern_sp[i] = args[i]; /* arguments */
     value *envptr = &Caml_state->extern_sp[narg + 0];
     *envptr = closure;
-    value codeptr = Long_val(Field(closure, 0));
-    int f_index = codeptr >> (code_pointer_shift-1);
-    wasm_function *f = (wasm_function *) f_index;
-    res = f(envptr, narg-1, codeptr, Caml_state->extern_sp);
+    value codeptr = Field(closure, 0);
+    int f_index = codeptr >> code_pointer_shift;
+    wasm_function_wrap *f = (wasm_function_wrap *) f_index;
+    res = (value) wasicaml_wraptry4(f, (void *) envptr, (void *) narg-1, (void *) codeptr, (void *) Caml_state->extern_sp);
     if (((void *) res) == NULL) {
       // exception
       res = Make_exception_result(Caml_state->exn_bucket);
