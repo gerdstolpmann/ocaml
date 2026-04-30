@@ -278,19 +278,19 @@ PRIMS_OBJ = prims.ir.$(O)
 endif
 
 ocamlrun$(EXE): $(PRIMS_OBJ) libcamlrun.$(A)
-	$(call MAKE_OCAMLRUN,$@,$^ $(LIBS))
+	$(call MAKE_OCAMLRUN,$@,main.b.o $^ $(LIBS))
 
 libcamlrun.$(A): $(libcamlrun_OBJECTS)
 	$(call MKLIB,$@, $^)
 
 ocamlrund$(EXE): $(PRIMS_OBJ) libcamlrund.$(A)
-	$(MKEXE) $(MKEXEDEBUGFLAG) -o $@ $^ $(LIBS)
+	$(MKEXE) $(MKEXEDEBUGFLAG) -o $@ main.bd.o $^ $(LIBS)
 
 libcamlrund.$(A): $(libcamlrund_OBJECTS)
 	$(call MKLIB,$@, $^)
 
 ocamlruni$(EXE): $(PRIMS_OBJ) libcamlruni.$(A)
-	$(MKEXE) -o $@ $^ $(LIBS)
+	$(MKEXE) -o $@ main.bi.o $^ $(LIBS)
 
 libcamlruni.$(A): $(libcamlruni_OBJECTS)
 	$(call MKLIB,$@, $^)
