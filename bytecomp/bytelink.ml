@@ -571,7 +571,7 @@ let build_custom_runtime prim_name exec_name =
   let runtime_lib =
     if not !Clflags.with_runtime
     then ""
-    else "-lcamlrun" ^ !Clflags.runtime_variant in
+    else "-Wl,--whole-archive,-lcamlrun" ^ !Clflags.runtime_variant ^ ",--no-whole-archive" in
   let debug_prefix_map =
     if Config.c_has_debug_prefix_map && not !Clflags.keep_camlprimc_file then
       let flag =
