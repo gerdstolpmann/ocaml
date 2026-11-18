@@ -275,8 +275,7 @@ PRIMS_OBJ = prims.ir.$(O)
 endif
 
 ocamlrun$(EXE): $(PRIMS_OBJ) libcamlrun.$(A)
-	$(MKEXE) -o $@ $^ $(LIBS)
-	#$(call MAKE_OCAMLRUN,$@,main.b.o $^ $(LIBS))
+	$(MKEXE) -o $@ main.b.$(O) $^ $(LIBS)
 
 ocamlruns$(EXE): $(PRIMS_OBJ) libcamlrun_non_shared.$(A)
 	$(call MKEXE_USING_COMPILER,$@,$^ $(LIBS))
@@ -288,13 +287,13 @@ libcamlrun_non_shared.$(A): $(libcamlrun_non_shared_OBJECTS)
 	$(call MKLIB,$@, $^)
 
 ocamlrund$(EXE): $(PRIMS_OBJ) libcamlrund.$(A)
-	$(MKEXE) $(MKEXEDEBUGFLAG) -o $@ main.bd.o $^ $(LIBS)
+	$(MKEXE) $(MKEXEDEBUGFLAG) -o $@ main.bd.$(O) $^ $(LIBS)
 
 libcamlrund.$(A): $(libcamlrund_OBJECTS)
 	$(call MKLIB,$@, $^)
 
 ocamlruni$(EXE): $(PRIMS_OBJ) libcamlruni.$(A)
-	$(MKEXE) -o $@ $^ $(INSTRUMENTED_RUNTIME_LIBS) $(LIBS)
+	$(MKEXE) -o $@ $^ main.bi.$(O) $(INSTRUMENTED_RUNTIME_LIBS) $(LIBS)
 
 libcamlruni.$(A): $(libcamlruni_OBJECTS)
 	$(call MKLIB,$@, $^)
