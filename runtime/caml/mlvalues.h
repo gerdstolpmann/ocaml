@@ -188,7 +188,7 @@ bits  63        (64-P) (63-P)        10 9     8 7   0
 #define Tag_hp(hp) (((unsigned char *) (hp)) [sizeof(value)-1])
                                                  /* Also an l-value. */
 #else
-#define Tag_val(val) (((unsigned char *) (val)) [-sizeof(value)])
+#define Tag_val(val) (((unsigned char *) (val)) [(ssize_t) -sizeof(value)])
                                                  /* Also an l-value. */
 #define Tag_hp(hp) (((unsigned char *) (hp)) [0])
                                                  /* Also an l-value. */
