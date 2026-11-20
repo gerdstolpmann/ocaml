@@ -18,7 +18,7 @@
 #include <caml/fail.h>
 #include "unixsupport.h"
 
-#ifdef HAS_SOCKETS
+#if defined(HAS_SOCKETS) || defined(HAS_INET_ATON)
 
 #include "socketaddr.h"
 
